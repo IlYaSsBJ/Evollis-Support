@@ -42,9 +42,16 @@ Each category triggers different contextual AI behavior:
 - **GENERAL** → Warm, informative, explains the financial and environmental benefits of the circular economy, no escalation unless explicitly requested.
 
 ## If You Want To Run Locally
-
-git clone [https://github.com/IlYaSsBJ/Evollis-Support](https://github.com/IlYaSsBJ/Evollis-Support)
-cd evollis-support
+1. **Clone the repository and navigate into the project directory:**
+```bash
+   git clone [https://github.com/IlYaSsBJ/Evollis-Support](https://github.com/IlYaSsBJ/Evollis-Support)
+```
+2. **Install The Dependencies:**
+```bash
 npm install
+```
+3. **Start the local development server:**
+```bash
 npm run dev
-Then open http://localhost:5173, enter your Google Gemini API key into the secure prompt, and start chatting.
+```
+4. **Then open http://localhost:5173, enter your Google Gemini API key into the secure prompt, and start chatting.**
