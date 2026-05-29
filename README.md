@@ -45,7 +45,7 @@ Each category triggers different contextual AI behavior:
 1. **Clone the repository and navigate into the project directory:**
 ```bash
    git clone [https://github.com/IlYaSsBJ/Evollis-Support](https://github.com/IlYaSsBJ/Evollis-Support)
-cd Evollis-Support
+   cd Evollis-Support
 ```
 2. **Install The Dependencies:**
 ```bash
