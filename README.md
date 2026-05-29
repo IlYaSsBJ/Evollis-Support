@@ -42,7 +42,7 @@ Each category triggers different contextual AI behavior:
 
 ## Run Locally
 
-git clone [https://github.com/YOUR_USERNAME/evollis-support](https://github.com/YOUR_USERNAME/evollis-support)
+git clone [https://github.com/YOUR_USERNAME/evollis-support](https://github.com/IlYaSsBJ/Evollis-Support)
 cd evollis-support
 npm install
 npm run dev
