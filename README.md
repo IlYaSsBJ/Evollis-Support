@@ -2,9 +2,6 @@
 
 A working first-line customer support web application for Evollis, specifically designed for their Device-as-a-Service (DaaS) and circular economy platform. Powered by the Google Gemini API.
 
-## Live Demo
-
-→ [Deployed on Vercel](https://evollis-support.vercel.app) *(Replace this with your actual Vercel link once deployed)*
 
 ## What It Does
 
