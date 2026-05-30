@@ -100,9 +100,35 @@ const SUGGESTED_QUESTIONS = [
   "The app keeps crashing on iOS",
 ];
 
+// ─── Safety / Context window limits ─────────────────────────────────────────
+// Protects against token abuse by limiting per-message size and trimming
+// the conversation history sent to the model (sliding window).
+const MAX_INPUT_CHARS = 750; // per-message hard cap
+const MAX_CONTEXT_CHARS = 8000; // total chars in the context window sent to the model
+const MAX_CONTEXT_MESSAGES = 10; // max messages to include (fallback)
+
+function trimMessagesForContext(messages) {
+  // messages assumed to be array of { role, content }
+  const out = [];
+  let chars = 0;
+  // iterate from the end and include until limits reached
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    const len = (m.content || "").length;
+    if (out.length >= MAX_CONTEXT_MESSAGES) break;
+    if (chars + len > MAX_CONTEXT_CHARS) break;
+    out.push(m);
+    chars += len;
+  }
+  // out is reversed (most recent first) -> reverse to chronological order
+  return out.reverse();
+}
+
 // ─── API call ────────────────────────────────────────────────────────────────
 async function callGemini(messages, apiKey) {
-  const geminiMessages = messages.map(m => ({
+  // Trim the messages to a sliding context window to prevent token abuse
+  const trimmed = trimMessagesForContext(messages);
+  const geminiMessages = trimmed.map(m => ({
     role: m.role === "user" ? "user" : "model",
     parts: [{ text: m.content }]
   }));
@@ -357,21 +383,19 @@ function Message({ msg }) {
 function TypingIndicator() {
   return (
     <div style={{ display: "flex", gap: "10px", marginBottom: "16px" }}>
-      <div
+      {/* Matched Avatar Logo to prevent layout shifts */}
+      <img 
+        src="/evollis-logo.svg" 
+        alt="Evollis" 
         style={{
           width: "32px",
           height: "32px",
           borderRadius: "50%",
-          background: "rgb(71, 209, 202)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "14px",
           flexShrink: 0,
+          marginTop: "4px",
+          objectFit: "contain"
         }}
-      >
-        E
-      </div>
+      />
       <div
         style={{
           background: "#ffffff",
@@ -413,6 +437,7 @@ export default function App() {
   );
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [inputError, setInputError] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -440,6 +465,12 @@ export default function App() {
   const handleSend = async (textOverride) => {
     const text = (textOverride || input).trim();
     if (!text || loading) return;
+    // Input length protection
+    if (text.length > MAX_INPUT_CHARS) {
+      setInputError(`Input too long — maximum ${MAX_INPUT_CHARS} characters.`);
+      return;
+    }
+    setInputError("");
     setInput("");
 
     const userMsg = { role: "user", content: text };
@@ -455,6 +486,8 @@ export default function App() {
 
     try {
       const parsed = await callGemini(apiMessages, apiKey);
+      // Clear any input error after successful call
+      setInputError("");
       setMessages((prev) => [
         ...prev,
         {
@@ -484,6 +517,8 @@ export default function App() {
       handleSend();
     }
   };
+
+  const isSendDisabled = loading || !input.trim() || input.length > MAX_INPUT_CHARS;
 
   // ── API key setup screen ──────────────────────────────────────────────────
   if (!apiKeySet) {
@@ -775,47 +810,81 @@ export default function App() {
               alignItems: "flex-end",
             }}
           >
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your question… (Enter to send, Shift+Enter for new line)"
-              rows={1}
-              style={{
-                flex: 1,
-                padding: "13px 16px",
-                borderRadius: "12px",
-                border: "1.5px solid #e2e8f0",
-                fontSize: "14px",
-                fontFamily: "'DM Sans', sans-serif",
-                outline: "none",
-                resize: "none",
-                lineHeight: 1.5,
-                transition: "border-color 0.15s",
-                maxHeight: "120px",
-                overflowY: "auto",
-              }}
-              onFocus={(e) => (e.target.style.borderColor = "rgb(71, 209, 202)")}
-              onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")}
-              onInput={(e) => {
-                e.target.style.height = "auto";
-                e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
-              }}
-            />
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative" }}>
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setInput(v);
+                  // live client-side validation
+                  if (v.length > MAX_INPUT_CHARS) {
+                    setInputError(`Input too long — maximum ${MAX_INPUT_CHARS} characters.`);
+                  } else {
+                    setInputError("");
+                  }
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="Type your question… (Enter to send, Shift+Enter for new line)"
+                rows={1}
+                style={{
+                  width: "100%",
+                  padding: "13px 16px",
+                  borderRadius: "12px",
+                  border: "1.5px solid #e2e8f0",
+                  fontSize: "14px",
+                  fontFamily: "'DM Sans', sans-serif",
+                  outline: "none",
+                  resize: "none",
+                  lineHeight: 1.5,
+                  transition: "border-color 0.15s",
+                  maxHeight: "120px",
+                  overflowY: "auto",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "rgb(71, 209, 202)")}
+                onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")}
+                onInput={(e) => {
+                  e.target.style.height = "auto";
+                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                }}
+              />
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
+                <div style={{ minHeight: "18px" }}>
+                  {inputError && (
+                    <div style={{ color: "#ef4444", fontSize: "12px" }}>
+                      {inputError}
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: "12px",
+                    fontFamily: "'DM Mono', monospace",
+                    color:
+                      input.length > MAX_INPUT_CHARS
+                        ? "#ef4444"
+                        : MAX_INPUT_CHARS - input.length <= 100
+                        ? "#f59e0b"
+                        : "#94a3b8",
+                    marginLeft: "12px",
+                  }}
+                >
+                  {Math.max(0, MAX_INPUT_CHARS - input.length)} chars left
+                </div>
+              </div>
+            </div>
             <button
               onClick={() => handleSend()}
-              disabled={loading || !input.trim()}
+              disabled={isSendDisabled}
               style={{
                 width: "46px",
                 height: "46px",
                 borderRadius: "12px",
-                background:
-                  loading || !input.trim()
-                    ? "#e2e8f0"
-                    : "rgb(71, 209, 202)",
+                background: isSendDisabled ? "#e2e8f0" : "rgb(71, 209, 202)",
                 border: "none",
-                cursor: loading || !input.trim() ? "default" : "pointer",
+                cursor: isSendDisabled ? "default" : "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -826,14 +895,14 @@ export default function App() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M12 19V5"
-                  stroke={loading || !input.trim() ? "#94a3b8" : "#fff"}
+                  stroke={isSendDisabled ? "#94a3b8" : "#fff"}
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
                 <path
                   d="M5 12l7-7 7 7"
-                  stroke={loading || !input.trim() ? "#94a3b8" : "#fff"}
+                  stroke={isSendDisabled ? "#94a3b8" : "#fff"}
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
