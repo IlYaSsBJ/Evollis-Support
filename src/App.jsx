@@ -825,14 +825,14 @@ export default function App() {
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <path
-                  d="M22 2L11 13"
+                  d="M12 19V5"
                   stroke={loading || !input.trim() ? "#94a3b8" : "#fff"}
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
                 <path
-                  d="M22 2L15 22L11 13L2 9L22 2Z"
+                  d="M5 12l7-7 7 7"
                   stroke={loading || !input.trim() ? "#94a3b8" : "#fff"}
                   strokeWidth="2"
                   strokeLinecap="round"
