@@ -297,7 +297,7 @@ function Message({ msg }) {
         }}
       />
 
-      <div style={{ maxWidth: "75%", minWidth: "200px" }}>
+      <div style={{ maxWidth: "75%", minWidth: "0", width: "100%" }}>
         {/* Category badge */}
         {parsed && (
           <div style={{ marginBottom: "6px" }}>
@@ -624,6 +624,7 @@ export default function App() {
     <>
       <style>{globalStyles}</style>
       <div
+        className="evollis-app-shell"
         style={{
           height: "100vh",
           display: "flex",
@@ -634,6 +635,7 @@ export default function App() {
       >
         {/* Header */}
         <div
+          className="evollis-header"
           style={{
             background: "#ffffff",
             borderBottom: "1px solid #e8eaf0",
@@ -646,7 +648,7 @@ export default function App() {
             boxShadow: "0 1px 8px rgba(0,0,0,0.05)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div className="evollis-header-left" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <img 
               src="/evollis-logo.svg" 
               alt="Evollis" 
@@ -664,7 +666,7 @@ export default function App() {
           </div>
 
           {/* Category legend */}
-          <div style={{ display: "flex", gap: "12px" }}>
+          <div className="evollis-header-legend" style={{ display: "flex", gap: "12px" }}>
             {Object.entries(CATEGORIES).map(([key, cfg]) => (
               <div
                 key={key}
@@ -689,6 +691,7 @@ export default function App() {
               setApiKey("");
               setMessages([]);
             }}
+            className="evollis-reset-btn"
             style={{
               padding: "6px 12px",
               background: "rgba(49, 97, 110, 0.1)",
@@ -707,6 +710,7 @@ export default function App() {
 
         {/* Messages area */}
         <div
+          className="evollis-messages"
           style={{
             flex: 1,
             overflowY: "auto",
@@ -749,6 +753,7 @@ export default function App() {
                 {SUGGESTED_QUESTIONS.map((q, i) => (
                   <button
                     key={i}
+                    className="evollis-suggestion"
                     onClick={() => handleSend(q)}
                     style={{
                       padding: "10px 18px",
@@ -794,6 +799,7 @@ export default function App() {
 
         {/* Input area */}
         <div
+          className="evollis-input-footer"
           style={{
             background: "#ffffff",
             borderTop: "1px solid #e8eaf0",
@@ -802,6 +808,7 @@ export default function App() {
           }}
         >
           <div
+            className="evollis-input-row"
             style={{
               maxWidth: "860px",
               margin: "0 auto",
@@ -810,7 +817,7 @@ export default function App() {
               alignItems: "flex-end",
             }}
           >
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative" }}>
+            <div className="evollis-composer" style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", position: "relative" }}>
               <textarea
                 ref={inputRef}
                 value={input}
@@ -829,6 +836,7 @@ export default function App() {
                 rows={1}
                 style={{
                   width: "100%",
+                  minHeight: "48px",
                   padding: "13px 16px",
                   borderRadius: "12px",
                   border: "1.5px solid #e2e8f0",
@@ -878,6 +886,7 @@ export default function App() {
             <button
               onClick={() => handleSend()}
               disabled={isSendDisabled}
+              className="evollis-send-button"
               style={{
                 width: "46px",
                 height: "46px",
@@ -948,4 +957,70 @@ const globalStyles = `
   ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
   textarea::-webkit-scrollbar { display: none; }
   textarea { -ms-overflow-style: none; scrollbar-width: none; }
+
+  @media (max-width: 640px) {
+    body {
+      background-size: 16px 16px;
+    }
+
+    .evollis-app-shell {
+      height: 100dvh;
+    }
+
+    .evollis-header {
+      padding: 10px 12px;
+      height: auto;
+      min-height: 64px;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .evollis-header-left {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .evollis-header-legend {
+      display: none !important;
+    }
+
+    .evollis-reset-btn {
+      margin-left: auto;
+    }
+
+    .evollis-messages {
+      padding: 16px 12px;
+    }
+
+    .evollis-input-footer {
+      padding: 12px;
+    }
+
+    .evollis-input-row {
+      gap: 10px;
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .evollis-composer {
+      width: 100%;
+    }
+
+    .evollis-send-button {
+      width: 100% !important;
+      height: 48px !important;
+      border-radius: 14px !important;
+    }
+
+    .evollis-input-footer textarea {
+      min-height: 52px;
+      font-size: 16px;
+    }
+
+    .evollis-suggestion {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 `;
